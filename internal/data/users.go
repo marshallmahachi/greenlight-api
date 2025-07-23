@@ -25,7 +25,7 @@ type User struct {
 }
 
 type password struct {
-	plaintext string
+	plaintext *string
 	hash      []byte
 }
 
@@ -36,7 +36,7 @@ func (p *password) Set(plainTextPassword string) error {
 		return err
 	}
 
-	p.plaintext = plainTextPassword
+	p.plaintext = &plainTextPassword
 	p.hash = hash
 
 	return nil
@@ -68,18 +68,18 @@ func validatePasswordPlaintext(v *validator.Validator, password string) {
 	v.Check(len(password) <= 72, "password", "must not be more than 72 bytes long")
 }
 
-func validateUser(v *validator.Validator, user User) {
+func ValidateUser(v *validator.Validator, user *User) {
 
 	v.Check(user.Name != "", "name", "must be provided")
 	v.Check(len(user.Name) <= 500, "name", "must not be more than 500 bytes long")
 
 	validateEmail(v, user.Email)
 
-	if user.Password.plaintext != "" {
-		validatePasswordPlaintext(v, user.Password.plaintext)
+	if user.Password.plaintext != nil {
+		validatePasswordPlaintext(v, *user.Password.plaintext)
 	}
 
-	if user.Password.hash != nil {
+	if user.Password.hash == nil {
 		panic("missing password hash for user")
 	}
 }
@@ -105,7 +105,7 @@ func (m UserModel) Insert(user *User) error {
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.CreatedAt, &user.Version)
 	if err != nil {
 		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint \"users_email_key\"`:
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
 			return ErrDuplicateEmail
 		default:
 			return err
