@@ -30,6 +30,8 @@ type password struct {
 	hash      []byte
 }
 
+var AnonymousUser = &User{}
+
 func (p *password) Set(plainTextPassword string) error {
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(plainTextPassword), 12)
@@ -58,12 +60,12 @@ func (p *password) Matches(plainTextPassword string) (bool, error) {
 	return true, nil
 }
 
-func validateEmail(v *validator.Validator, email string) {
+func ValidateEmail(v *validator.Validator, email string) {
 	v.Check(email != "", "email", "must be provided")
 	v.Check(validator.Matches(email, validator.EmailRX), "email", "must be a valid email address")
 }
 
-func validatePasswordPlaintext(v *validator.Validator, password string) {
+func ValidatePasswordPlaintext(v *validator.Validator, password string) {
 	v.Check(password != "", "password", "must be provided")
 	v.Check(len(password) >= 8, "password", "must be at least 8 bytes long")
 	v.Check(len(password) <= 72, "password", "must not be more than 72 bytes long")
@@ -74,10 +76,10 @@ func ValidateUser(v *validator.Validator, user *User) {
 	v.Check(user.Name != "", "name", "must be provided")
 	v.Check(len(user.Name) <= 500, "name", "must not be more than 500 bytes long")
 
-	validateEmail(v, user.Email)
+	ValidateEmail(v, user.Email)
 
 	if user.Password.plaintext != nil {
-		validatePasswordPlaintext(v, *user.Password.plaintext)
+		ValidatePasswordPlaintext(v, *user.Password.plaintext)
 	}
 
 	if user.Password.hash == nil {
@@ -219,4 +221,8 @@ func (m UserModel) GetForToken(tokenScope string, tokenPlaintext string) (*User,
 	}
 
 	return &user, nil
+}
+
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
 }
