@@ -3,6 +3,7 @@ package mailer
 import (
 	"bytes"
 	"embed"
+	"fmt"
 	"time"
 
 	ht "html/template"
@@ -87,5 +88,9 @@ func (m *Mailer) Send(recipient string, templateFile string, data any) error {
 	msg.SetBodyString(mail.TypeTextPlain, plainBody.String())
 	msg.SetBodyString(mail.TypeTextHTML, htmlBody.String())
 
-	return m.client.DialAndSend(msg)
+	fmt.Printf("Sending email to %s - subject: %s\n\n%s\n", recipient, subject.String(), plainBody.String())
+
+	// TODO: Uncomment the line below to actually send the email.
+	// return m.client.DialAndSend(msg)
+	return nil
 }
