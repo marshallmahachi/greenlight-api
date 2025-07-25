@@ -16,9 +16,12 @@ import (
 	_ "github.com/lib/pq"
 	"greenlight.marshallmahachi.net/internal/data"
 	"greenlight.marshallmahachi.net/internal/mailer"
+	"greenlight.marshallmahachi.net/internal/vcs"
 )
 
-const version = "1.0.0"
+var (
+	version = vcs.Version()
+)
 
 type config struct {
 	port int
